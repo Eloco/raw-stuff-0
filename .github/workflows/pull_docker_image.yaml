@@ -1,0 +1,31 @@
+name: Download Docker Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      IMAGE_NAME:
+        description: 'Docker image name'
+        required: true
+
+jobs:
+  download-docker-image:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Pull Docker image
+        run: |
+          IMAGE_NAME="${{ github.event.inputs.IMAGE_NAME }}"
+          docker pull "$IMAGE_NAME"
+
+      - name: Save Docker image as tar
+        run: |
+          IMAGE_NAME="${{ github.event.inputs.IMAGE_NAME }}"
+          IMAGE_TAG=$(echo "$IMAGE_NAME" | sed 's/[/:]/_/g')
+          docker save -o "${IMAGE_TAG}.tar" "$IMAGE_NAME"
+
+      - name: Upload tar file as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: docker-image
+          path: |
+            *.tar

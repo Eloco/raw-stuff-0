@@ -27,10 +27,3 @@ jobs:
         run: |
           IMAGE_TAG=$(echo "${{ github.event.inputs.IMAGE_NAME }}" | sed 's/[/:]/_/g')
           curl -F "file=@${IMAGE_TAG}.tar.gz" https://file.io
-
-      - name: Upload compressed tar file as artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: docker-image
-          path: |
-            *.tar.gz

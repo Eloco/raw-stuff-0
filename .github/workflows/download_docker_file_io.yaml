@@ -1,0 +1,36 @@
+name: Download Docker Image (file.io)
+
+on:
+  workflow_dispatch:
+    inputs:
+      IMAGE_NAME:
+        description: 'Docker image name'
+        required: true
+
+jobs:
+  download-docker-image:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Pull Docker image
+        run: |
+          IMAGE_NAME="${{ github.event.inputs.IMAGE_NAME }}"
+          docker pull "$IMAGE_NAME"
+
+      - name: Save and compress Docker image
+        run: |
+          IMAGE_NAME="${{ github.event.inputs.IMAGE_NAME }}"
+          IMAGE_TAG=$(echo "$IMAGE_NAME" | sed 's/[/:]/_/g')
+          docker save "$IMAGE_NAME" | gzip > "${IMAGE_TAG}.tar.gz"
+
+      - name: Upload compressed tar file to file.io
+        run: |
+          IMAGE_TAG=$(echo "${{ github.event.inputs.IMAGE_NAME }}" | sed 's/[/:]/_/g')
+          curl -F "file=@${IMAGE_TAG}.tar.gz" https://file.io
+
+      - name: Upload compressed tar file as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: docker-image
+          path: |
+            *.tar.gz
